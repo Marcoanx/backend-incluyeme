@@ -6,7 +6,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const URI = 'mongodb+srv://marcoanx12_db_user:nrLUNnvob7FKnNik@incluyeme1.fqz87is.mongodb.net/basepersona?retryWrites=true&w=majority';
 
@@ -22,19 +24,18 @@ const usuarioSchema = new mongoose.Schema({
   userName: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   type: { type: String, required: true }, 
-  avatar: { type: String, default: '' }, // Agregado para el perfil
+  avatar: { type: String, default: '' },
   grupo_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Grupo' }
 });
 const Usuario = mongoose.model('Usuario', usuarioSchema);
 
 const grupoSchema = new mongoose.Schema({
   grupo: { type: String, required: true },
-  teacher: { type: String }, // Agregado porque Ionic lo envía
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }] // Array de alumnos
+  teacher: { type: String },
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }]
 });
 const Grupo = mongoose.model('Grupo', grupoSchema);
 
-// (Modelos de Actividades y Evaluaciones omitidos por brevedad, los mantendremos simples)
 const actividadSchema = new mongoose.Schema({
   grupo: String,
   actividad: String,
@@ -71,7 +72,7 @@ app.post('/user/login', async (req, res) => {
 app.get('/user/consult', async (req, res) => {
   try {
     const token = req.headers['x-token'];
-    const id = token.split('-')[1]; // Extraemos el ID de nuestro token simulado
+    const id = token.split('-')[1];
     const userDB = await Usuario.findById(id);
     res.json({ ok: true, usuario: userDB });
   } catch (error) {
@@ -124,8 +125,34 @@ app.delete('/user/delete/:id', async (req, res) => {
   }
 });
 
-// Mock para subida de imágenes para que Ionic no tire error
-app.post('/user/upload', (req, res) => res.json({ ok: true }));
+// Ruta real para actualizar el avatar en MongoDB Atlas
+app.post('/user/upload', async (req, res) => {
+  try {
+    const token = req.headers['x-token'];
+    const avatarBase64 = req.body.avatar;
+
+    if (!token) {
+      return res.status(401).json({ ok: false, message: 'No autorizado' });
+    }
+
+    const id = token.split('-')[1];
+    const userDB = await Usuario.findByIdAndUpdate(
+      id, 
+      { avatar: avatarBase64 }, 
+      { new: true }
+    );
+
+    if (!userDB) {
+      return res.status(404).json({ ok: false, message: 'Usuario no encontrado' });
+    }
+
+    res.json({ ok: true, userDB });
+  } catch (error) {
+    console.error('Error al subir avatar:', error);
+    res.status(500).json({ ok: false, error });
+  }
+});
+
 app.post('/user/actualizaAvatar', (req, res) => res.json({ ok: true, tokenUser: 'token-avatar', userDB: { type: 'T' } }));
 
 
@@ -176,7 +203,6 @@ app.post('/group/asignaGrupo', async (req, res) => {
   }
 });
 
-// Eliminar grupo (Ionic usa la palabra 'grupo' aquí)
 app.delete('/grupo/delete/:id', async (req, res) => {
   try {
     await Grupo.findByIdAndDelete(req.params.id);
@@ -185,8 +211,6 @@ app.delete('/grupo/delete/:id', async (req, res) => {
     res.json({ ok: false });
   }
 });
-
-
 
 app.post('/actividadAlumno/agregarActividad', async (req, res) => {
   try {
