@@ -231,6 +231,16 @@ app.get('/group/verActivities/:grupo', async (req, res) => {
   }
 });
 
+app.post('/group/eliminarAlumno', async (req, res) => {
+  try {
+    const { grupo, alumno } = req.body;
+    await Grupo.findByIdAndUpdate(grupo, { $pull: { students: alumno } });
+    res.json({ ok: true, message: 'Alumno eliminado del grupo con éxito' });
+  } catch (error) {
+    res.status(500).json({ ok: false, error });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
