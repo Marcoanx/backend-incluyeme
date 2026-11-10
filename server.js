@@ -43,6 +43,15 @@ const actividadSchema = new mongoose.Schema({
 });
 const Actividad = mongoose.model('Actividad', actividadSchema);
 
+// --- ESQUEMA Y MODELO PARA ACTIVIDADES GENERALES POR ÁREA (ADMIN) ---
+const actividadGeneralSchema = new mongoose.Schema({
+  titulo: { type: String, required: true },
+  area: { type: String, required: true },
+  descripcion: { type: String },
+  tipo: { type: String, default: 'opciones' }
+});
+const ActividadGeneral = mongoose.model('ActividadGeneral', actividadGeneralSchema);
+
 
 app.post('/user/create', async (req, res) => {
   try {
@@ -125,7 +134,6 @@ app.delete('/user/delete/:id', async (req, res) => {
   }
 });
 
-// Ruta real para actualizar el avatar en MongoDB Atlas
 app.post('/user/upload', async (req, res) => {
   try {
     const token = req.headers['x-token'];
@@ -236,6 +244,32 @@ app.post('/group/eliminarAlumno', async (req, res) => {
     const { grupo, alumno } = req.body;
     await Grupo.findByIdAndUpdate(grupo, { $pull: { students: alumno } });
     res.json({ ok: true, message: 'Alumno eliminado del grupo con éxito' });
+  } catch (error) {
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+// --- RUTAS DE ACTIVIDADES GENERALES (PARA CUALQUIER ÁREA) ---
+
+// 1. Ver actividades filtradas por área (Soporta acentos y espacios como "Cálculo")
+app.get('/activity/ver/:area', async (req, res) => {
+  try {
+    const areaParam = decodeURIComponent(req.params.area).trim();
+    const actividades = await ActividadGeneral.find({ 
+      area: { $regex: new RegExp('^' + areaParam + '$', 'i') } 
+    });
+    res.json({ ok: true, activities: actividades });
+  } catch (error) {
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+// 2. Crear una nueva actividad específica desde el panel de administrador
+app.post('/activity/crear', async (req, res) => {
+  try {
+    const nuevaActividad = new ActividadGeneral(req.body);
+    await nuevaActividad.save();
+    res.json({ ok: true, activityDB: nuevaActividad });
   } catch (error) {
     res.status(500).json({ ok: false, error });
   }
