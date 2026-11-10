@@ -48,7 +48,12 @@ const actividadGeneralSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   area: { type: String, required: true },
   descripcion: { type: String },
-  tipo: { type: String, default: 'opciones' }
+  tipo: { type: String, default: 'opciones' },
+  preguntas: [{ 
+    enunciado: String, 
+    respuestaCorrecta: String,
+    opciones: [String] 
+  }]
 });
 const ActividadGeneral = mongoose.model('ActividadGeneral', actividadGeneralSchema);
 
@@ -249,9 +254,9 @@ app.post('/group/eliminarAlumno', async (req, res) => {
   }
 });
 
-// --- RUTAS DE ACTIVIDADES GENERALES (PARA CUALQUIER ÁREA) ---
+// --- RUTAS DE ACTIVIDADES GENERALES Y ADMINISTRADOR ---
 
-// 1. Ver actividades filtradas por área (Soporta acentos y espacios como "Cálculo")
+// 1. Ver actividades filtradas por área
 app.get('/activity/ver/:area', async (req, res) => {
   try {
     const areaParam = decodeURIComponent(req.params.area).trim();
@@ -264,12 +269,22 @@ app.get('/activity/ver/:area', async (req, res) => {
   }
 });
 
-// 2. Crear una nueva actividad específica desde el panel de administrador
+// 2. Crear una nueva actividad
 app.post('/activity/crear', async (req, res) => {
   try {
     const nuevaActividad = new ActividadGeneral(req.body);
     await nuevaActividad.save();
     res.json({ ok: true, activityDB: nuevaActividad });
+  } catch (error) {
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+// 3. Eliminar una actividad por su ID
+app.delete('/activity/delete/:id', async (req, res) => {
+  try {
+    await ActividadGeneral.findByIdAndDelete(req.params.id);
+    res.json({ ok: true, message: 'Actividad eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ ok: false, error });
   }
