@@ -43,12 +43,16 @@ const actividadSchema = new mongoose.Schema({
 });
 const Actividad = mongoose.model('Actividad', actividadSchema);
 
-// --- ESQUEMA Y MODELO PARA ACTIVIDADES GENERALES POR ÁREA (ADMIN) ---
+// --- ESQUEMA Y MODELO PARA ACTIVIDADES GENERALES (CON MULTIMEDIA Y PREGUNTAS) ---
 const actividadGeneralSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   area: { type: String, required: true },
   descripcion: { type: String },
+  indicacion: { type: String },
   tipo: { type: String, default: 'opciones' },
+  correct: { type: String },
+  sound: { type: String },
+  img: [String],
   preguntas: [{ 
     enunciado: String, 
     respuestaCorrecta: String,
@@ -254,9 +258,9 @@ app.post('/group/eliminarAlumno', async (req, res) => {
   }
 });
 
-// --- RUTAS DE ACTIVIDADES GENERALES Y ADMINISTRADOR ---
+// --- RUTAS DE ACTIVIDADES GENERALES ---
 
-// 1. Ver actividades filtradas por área
+// 1. Ver actividades por área
 app.get('/activity/ver/:area', async (req, res) => {
   try {
     const areaParam = decodeURIComponent(req.params.area).trim();
@@ -269,7 +273,20 @@ app.get('/activity/ver/:area', async (req, res) => {
   }
 });
 
-// 2. Crear una nueva actividad
+// 2. Ver una actividad específica por su ID
+app.get('/activity/verActivity/:id', async (req, res) => {
+  try {
+    const actividad = await ActividadGeneral.findById(req.params.id);
+    if (!actividad) {
+      return res.status(404).json({ ok: false, message: 'Actividad no encontrada' });
+    }
+    res.json({ ok: true, activityDB: actividad });
+  } catch (error) {
+    res.status(500).json({ ok: false, error });
+  }
+});
+
+// 3. Crear una nueva actividad
 app.post('/activity/crear', async (req, res) => {
   try {
     const nuevaActividad = new ActividadGeneral(req.body);
@@ -280,7 +297,7 @@ app.post('/activity/crear', async (req, res) => {
   }
 });
 
-// 3. Eliminar una actividad por su ID
+// 4. Eliminar una actividad por su ID
 app.delete('/activity/delete/:id', async (req, res) => {
   try {
     await ActividadGeneral.findByIdAndDelete(req.params.id);
