@@ -44,7 +44,7 @@ const actividadSchema = new mongoose.Schema({
 });
 const Actividad = mongoose.model('Actividad', actividadSchema);
 
-// --- ESQUEMA DE ACTIVIDADES GENERALES (ACTUALIZADO CON PREGUNTAS MÚLTIPLES) ---
+// --- ESQUEMA DE ACTIVIDADES GENERALES ---
 const actividadGeneralSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   area: { type: String, required: true },
@@ -189,6 +189,16 @@ app.post('/group/eliminarAlumno', async (req, res) => {
 });
 
 // --- RUTAS DE ACTIVIDADES GENERALES (CRUD) ---
+
+// NUEVO: Ver TODAS las actividades en general (soluciona el error 404 en el cliente)
+app.get('/activity/ver', async (req, res) => {
+  try {
+    const actividades = await ActividadGeneral.find();
+    res.json({ ok: true, activities: actividades });
+  } catch (error) { 
+    res.status(500).json({ ok: false, error }); 
+  }
+});
 
 // 1. Ver actividades por área
 app.get('/activity/ver/:area', async (req, res) => {
