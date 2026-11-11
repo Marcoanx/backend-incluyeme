@@ -44,7 +44,7 @@ const actividadSchema = new mongoose.Schema({
 });
 const Actividad = mongoose.model('Actividad', actividadSchema);
 
-// --- ESQUEMA DE ACTIVIDADES GENERALES ---
+// --- ESQUEMA DE ACTIVIDADES GENERALES (CON FORMULARIOS / PREGUNTAS) ---
 const actividadGeneralSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   area: { type: String, required: true },
@@ -190,7 +190,7 @@ app.post('/group/eliminarAlumno', async (req, res) => {
 
 // --- RUTAS DE ACTIVIDADES GENERALES (CRUD) ---
 
-// NUEVO: Ver TODAS las actividades en general (soluciona el error 404 en el cliente)
+// Ver TODAS las actividades generales creadas por el Admin
 app.get('/activity/ver', async (req, res) => {
   try {
     const actividades = await ActividadGeneral.find();
@@ -200,7 +200,7 @@ app.get('/activity/ver', async (req, res) => {
   }
 });
 
-// 1. Ver actividades por área
+// Ver actividades por área
 app.get('/activity/ver/:area', async (req, res) => {
   try {
     const areaParam = decodeURIComponent(req.params.area).trim();
@@ -211,7 +211,7 @@ app.get('/activity/ver/:area', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 2. Ver una actividad específica
+// Ver una actividad específica
 app.get('/activity/verActivity/:id', async (req, res) => {
   try {
     const actividad = await ActividadGeneral.findById(req.params.id);
@@ -220,7 +220,7 @@ app.get('/activity/verActivity/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 3. Crear una nueva actividad
+// Crear una nueva actividad
 app.post('/activity/crear', async (req, res) => {
   try {
     const nuevaActividad = new ActividadGeneral(req.body);
@@ -229,7 +229,7 @@ app.post('/activity/crear', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 4. Editar/Actualizar una actividad existente
+// Editar/Actualizar una actividad existente
 app.put('/activity/update/:id', async (req, res) => {
   try {
     const actualizada = await ActividadGeneral.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -237,7 +237,7 @@ app.put('/activity/update/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 5. Eliminar una actividad
+// Eliminar una actividad
 app.delete('/activity/delete/:id', async (req, res) => {
   try {
     await ActividadGeneral.findByIdAndDelete(req.params.id);
@@ -245,7 +245,7 @@ app.delete('/activity/delete/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 6. Restaurar actividades predeterminadas SIN DUPLICAR
+// Restaurar actividades predeterminadas SIN DUPLICAR
 app.post('/activity/restaurar', async (req, res) => {
   try {
     let nuevasAgregadas = 0;
