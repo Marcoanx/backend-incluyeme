@@ -44,7 +44,7 @@ const actividadSchema = new mongoose.Schema({
 });
 const Actividad = mongoose.model('Actividad', actividadSchema);
 
-// --- ESQUEMA DE ACTIVIDADES GENERALES ---
+// --- ESQUEMA DE ACTIVIDADES GENERALES (ACTUALIZADO CON PREGUNTAS MÚLTIPLES) ---
 const actividadGeneralSchema = new mongoose.Schema({
   titulo: { type: String, required: true },
   area: { type: String, required: true },
@@ -53,12 +53,16 @@ const actividadGeneralSchema = new mongoose.Schema({
   tipo: { type: String, default: 'opciones' },
   correct: { type: String },
   sound: { type: String },
-  img: [String]
+  img: [String],
+  preguntas: [{ 
+    enunciado: String, 
+    correcta: String,
+    opciones: [String] 
+  }]
 });
 const ActividadGeneral = mongoose.model('ActividadGeneral', actividadGeneralSchema);
 
-
-// --- RUTAS DE USUARIOS Y GRUPOS (Las mantengo intactas) ---
+// --- RUTAS DE USUARIOS Y GRUPOS ---
 app.post('/user/create', async (req, res) => {
   try {
     const nuevoUsuario = new Usuario(req.body);
@@ -132,8 +136,6 @@ app.post('/user/upload', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-app.post('/user/actualizaAvatar', (req, res) => res.json({ ok: true, tokenUser: 'token-avatar', userDB: { type: 'T' } }));
-
 app.post('/group/agregar', async (req, res) => {
   try {
     const nuevoGrupo = new Grupo(req.body);
@@ -178,21 +180,6 @@ app.delete('/grupo/delete/:id', async (req, res) => {
   } catch (error) { res.json({ ok: false }); }
 });
 
-app.post('/actividadAlumno/agregarActividad', async (req, res) => {
-  try {
-    const nuevaActividad = new Actividad(req.body);
-    await nuevaActividad.save();
-    res.json({ ok: true });
-  } catch (error) { res.json({ ok: false }); }
-});
-
-app.get('/group/verActivities/:grupo', async (req, res) => {
-  try {
-    const actividades = await Actividad.find({ grupo: req.params.grupo });
-    res.json({ ok: true, actividades });
-  } catch (error) { res.json({ ok: false }); }
-});
-
 app.post('/group/eliminarAlumno', async (req, res) => {
   try {
     const { grupo, alumno } = req.body;
@@ -200,7 +187,6 @@ app.post('/group/eliminarAlumno', async (req, res) => {
     res.json({ ok: true, message: 'Alumno eliminado del grupo con éxito' });
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
-
 
 // --- RUTAS DE ACTIVIDADES GENERALES (CRUD) ---
 
@@ -215,7 +201,7 @@ app.get('/activity/ver/:area', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 2. Ver una actividad específica por su ID
+// 2. Ver una actividad específica
 app.get('/activity/verActivity/:id', async (req, res) => {
   try {
     const actividad = await ActividadGeneral.findById(req.params.id);
@@ -233,7 +219,15 @@ app.post('/activity/crear', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 4. Eliminar una actividad
+// 4. Editar/Actualizar una actividad existente
+app.put('/activity/update/:id', async (req, res) => {
+  try {
+    const actualizada = await ActividadGeneral.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ ok: true, activityDB: actualizada });
+  } catch (error) { res.status(500).json({ ok: false, error }); }
+});
+
+// 5. Eliminar una actividad
 app.delete('/activity/delete/:id', async (req, res) => {
   try {
     await ActividadGeneral.findByIdAndDelete(req.params.id);
@@ -241,32 +235,21 @@ app.delete('/activity/delete/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 5. Restaurar actividades predeterminadas (Seed) SIN DUPLICAR
+// 6. Restaurar actividades predeterminadas SIN DUPLICAR
 app.post('/activity/restaurar', async (req, res) => {
   try {
     let nuevasAgregadas = 0;
-
-    // Revisamos una por una las actividades del archivo defaultActivities.js
     for (const actividad of actividadesPredeterminadas) {
-      
-      // Buscamos si ya existe una actividad con ese mismo título y en esa misma área
-      const existe = await ActividadGeneral.findOne({ 
-        titulo: actividad.titulo, 
-        area: actividad.area 
-      });
-
-      // Si NO existe, entonces la creamos
+      const existe = await ActividadGeneral.findOne({ titulo: actividad.titulo, area: actividad.area });
       if (!existe) {
         await ActividadGeneral.create(actividad);
         nuevasAgregadas++;
       }
     }
+    res.json({ ok: true, message: `Se agregaron ${nuevasAgregadas} actividades nuevas.` });
+  } catch (error) { res.status(500).json({ ok: false, error }); }
+});
 
-    res.json({ 
-      ok: true, 
-      message: `Restauración completa. Se agregaron ${nuevasAgregadas} actividades nuevas.` 
-    });
-  } catch (error) { 
-    res.status(500).json({ ok: false, error }); 
-  }
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
