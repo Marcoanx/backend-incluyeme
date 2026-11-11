@@ -241,14 +241,32 @@ app.delete('/activity/delete/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ ok: false, error }); }
 });
 
-// 5. Restaurar actividades predeterminadas
+// 5. Restaurar actividades predeterminadas (Seed) SIN DUPLICAR
 app.post('/activity/restaurar', async (req, res) => {
   try {
-    const insertadas = await ActividadGeneral.insertMany(actividadesPredeterminadas);
-    res.json({ ok: true, message: 'Catálogo base restaurado con éxito', data: insertadas });
-  } catch (error) { res.status(500).json({ ok: false, error }); }
-});
+    let nuevasAgregadas = 0;
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+    // Revisamos una por una las actividades del archivo defaultActivities.js
+    for (const actividad of actividadesPredeterminadas) {
+      
+      // Buscamos si ya existe una actividad con ese mismo título y en esa misma área
+      const existe = await ActividadGeneral.findOne({ 
+        titulo: actividad.titulo, 
+        area: actividad.area 
+      });
+
+      // Si NO existe, entonces la creamos
+      if (!existe) {
+        await ActividadGeneral.create(actividad);
+        nuevasAgregadas++;
+      }
+    }
+
+    res.json({ 
+      ok: true, 
+      message: `Restauración completa. Se agregaron ${nuevasAgregadas} actividades nuevas.` 
+    });
+  } catch (error) { 
+    res.status(500).json({ ok: false, error }); 
+  }
 });
