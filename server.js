@@ -5,6 +5,9 @@ const cors = require('cors');
 // Importar catálogo de actividades predeterminadas
 const actividadesPredeterminadas = require('./defaultActivities'); 
 
+// Importar la nueva ruta de evaluaciones
+const evaluacionRoutes = require('./routes/evaluacion'); 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -61,6 +64,10 @@ const actividadGeneralSchema = new mongoose.Schema({
   }]
 });
 const ActividadGeneral = mongoose.model('ActividadGeneral', actividadGeneralSchema);
+
+// --- RUTAS DE EVALUACIONES ---
+// Conecta el archivo de rutas que creamos en la carpeta routes/
+app.use('/evaluacion', evaluacionRoutes);
 
 // --- RUTAS DE USUARIOS Y GRUPOS ---
 app.post('/user/create', async (req, res) => {
