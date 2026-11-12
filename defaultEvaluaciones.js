@@ -55,15 +55,15 @@ const evaluacionesPredeterminadas = [
         ['¿Cuánto es 6 - 3?', '3', '3', '2', '4']
     ]),
 
-    // 2. DISCRIMINACIÓN DE FORMAS (Usa Imágenes reales)
-    crearEval('Evaluación: Figuras Geométricas', 'Discriminación de Formas', [
-        ['Selecciona el TRIÁNGULO (3 lados)', iTriangulo, iCirculo, iCuadrado, iTriangulo],
-        ['Selecciona el CÍRCULO (Redondo)', iCirculo, iCirculo, iTriangulo, iCuadrado],
-        ['Selecciona el CUADRADO (Caja)', iCuadrado, iTriangulo, iCuadrado, iCirculo],
-        ['¿Qué figura NO tiene esquinas?', iCirculo, iTriangulo, iCuadrado, iCirculo],
-        ['¿A qué figura se parece una rebanada de pizza?', iTriangulo, iCuadrado, iTriangulo, iCirculo],
-        ['¿A qué figura se parece una pelota?', iCirculo, iCirculo, iCuadrado, iTriangulo],
-        ['Selecciona de nuevo el Cuadrado', iCuadrado, iCuadrado, iCirculo, iTriangulo]
+    // 2. DISCRIMINACIÓN DE FORMAS (Versión texto seguro sin errores de URL)
+   crearEval('Evaluación: Figuras Geométricas', 'Discriminación de Formas', [
+        ['¿Qué figura tiene 3 lados?', 'Triángulo', 'Círculo', 'Cuadrado', 'Triángulo'],
+        ['¿Qué figura es redonda como una pelota?', 'Círculo', 'Círculo', 'Triángulo', 'Rectángulo'],
+        ['¿Qué figura tiene 4 lados iguales?', 'Cuadrado', 'Rombo', 'Cuadrado', 'Círculo'],
+        ['¿Qué figura NO tiene esquinas?', 'Círculo', 'Triángulo', 'Cuadrado', 'Círculo'],
+        ['¿A qué figura se parece una rebanada de pizza?', 'Triángulo', 'Cuadrado', 'Triángulo', 'Círculo'],
+        ['¿A qué figura se parece una pelota?', 'Círculo', 'Círculo', 'Cuadrado', 'Triángulo'],
+        ['Selecciona de nuevo el Cuadrado', 'Cuadrado', 'Cuadrado', 'Círculo', 'Triángulo']
     ]),
     crearEval('Evaluación: Tamaños', 'Discriminación de Formas', [
         ['¿Cuál es más grande?', 'Un elefante', 'Un perro', 'Un elefante', 'Un ratón'],
